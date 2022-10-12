@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css"/>
+    <script
+            src="https://cdn.jsdelivr.net/npm/jquery@3.6.1/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.min.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/layer/3.5.1/layer.min.js"></script>
+</head>
+<body>
+<div class="container-fluid" id="app">
+    <!--标题栏-->
+    <h4 class="mt-1 bg-success text-white text-center p-3 rounded-3 shadow">购 物 车</h4>
+    <!--购物车项列表-->
+    <div class="mt-3 p-3">
+        <table class="table table-striped">
+            <thead>
+            <tr>
+                <th>编号</th>
+                <th>名称</th>
+                <th>单价(¥)</th>
+                <th>件数</th>
+                <th>价格小计(¥)</th>
+                <th>操作</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr v-for="item in cart.items">
+                <td style="font-size: 20px;">{{item.foodId}}</td>
+                <td style="font-size: 20px;">{{item.foodName}}</td>
+                <td style="font-size: 20px;">{{item.price}}</td>
+                <td><input :id="item.foodId" type="number" class="form-control" style="width: 100px;"
+                           :value="item.fcount"
+                           @change="update(item);"/></td>
+                <td style="font-size: 20px;" class="text-danger">{{item.sumPrice}}</td>
+                <td>
+                    <button class="btn btn-md btn-outline-danger" @click="del(item);">删除</button>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <!--价格总计-->
+    <div class="mt-3 p-3 d-flex">
+        <div style="font-size: 22px;">-价格总计-</div>
+        <div class="text-danger"
+             style="font-size: 24px;">¥{{cart.totalPrice}}
+        </div>
+        <div style="width:10px;"></div>
+        <a class="btn btn-md btn-danger" href="/order/orderView">去下单</a>
+    </div>
+</div>
+<script>
+    var app = new Vue({
+        el: "#app",
+        data: {
+            cart: {}
+        },
+        methods: {
+            showCart: function () {
+                $.post("/cart/selectCart", {}, function (d) {
+                    app.cart = d;
+                });
+            },
+            update: function (item) {
+                var fcount = $("#" + item.foodId).val();
+                $.post("/cart/update", {
+                    foodId: item.foodId,
+                    price: item.price,
+                    fcount: fcount
+                }, function (d) {
+                    if (d != "success") {
+                        layer.alert(d);
+                    } else {
+                        layer.msg("操作成功 : )");
+                    }
+                    app.showCart();
+                })
+            },
+            //删除购物车项
+            del: function (item) {
+                layer.confirm("确定删除本项吗?", function () {
+                    $.post("/cart/deleteByFoodId", {foodId: item.foodId}, function (d) {
+                        layer.msg("删除成功");
+                        app.showCart();
+                    });
+                });
+            }
+        },
+        mounted: function () {
+            this.showCart();
+        }
+    });
+</script>
+</body>
+</html>

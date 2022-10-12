@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css"/>
+    <script
+            src="https://cdn.jsdelivr.net/npm/jquery@3.6.1/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/layer/3.5.1/layer.min.js"></script>
+</head>
+<body>
+<div class="container-fluid" id="app">
+    <div class="mt-1 row bg-success text-white text-center p-3 rounded-3 shadow">
+        <div class="col-sm-1">
+            <div class="dropdown">
+                <button type="button" class="btn btn-md" data-bs-toggle="dropdown"><i
+                        class="fa fa-bars text-white"></i>
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="#">主页</a></li>
+                    <li><a class="dropdown-item" href="#">我的资料</a></li>
+                    <li><a class="dropdown-item" href="/cart/cartView" target="_blank">我的购物车</a></li>
+                    <li><a class="dropdown-item" href="#">我的订单</a></li>
+                </ul>
+            </div>
+        </div>
+        <h4 class="col">商 家 详 情</h4>
+        <div class="col-sm-1"></div>
+    </div>
+    <div style="font-size: 22px;font-weight: bold;" class="mt-3 text-center">{{provider.name}}</div>
+    <hr/>
+    <div class="row p-3">
+        <div class="col">
+            <div style="font-size:18px;font-weight: bold">地址</div>
+            <div style="font-size:18px;height:30px;">{{provider.location}}</div>
+            <div class="mt-1" style="font-size:18px;font-weight: bold">人均消费</div>
+            <div class="text-danger" style="font-size: 20px;height:30px;">¥{{provider.consume}}</div>
+            <div class="mt-1" style="font-size:18px;font-weight: bold">商家介绍</div>
+            <div style="font-size:18px;">{{provider.detail}}</div>
+        </div>
+        <div class="col">
+            <table class="table table-striped">
+                <thead>
+                <tr>
+                    <th>编号</th>
+                    <th>品名</th>
+                    <th>单价(¥)</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr v-for="f in foodList">
+                    <td>{{f.id}}</td>
+                    <td>{{f.name}}</td>
+                    <td>{{f.price}}</td>
+                    <td>
+                        <button class="btn btn-md btn-danger" @click="addCartItem(f);"><i
+                                class="fa fa-cart-plus"></i>
+                        </button>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<script>
+    var app = new Vue({
+        el: "#app",
+        data: {
+            provider: {},
+            foodList: []
+        },
+        methods: {
+            showProvider: function () {
+                $.post("/provider/selectById", {
+                    providerId: [[${providerId}]]
+                }, function (d) {
+                    app.provider = d;
+                });
+            },
+            showFoodList: function () {
+                $.post("/food/selectByProviderId", {
+                    providerId: [[${providerId}]]
+                }, function (d) {
+                    app.foodList = d;
+                });
+            },
+            addCartItem: function (f) {
+                $.post("/cart/addOneFoodToCart", {
+                    foodId: f.id,
+                    foodName: f.name,
+                    price: f.price
+                }, function (d) {
+                    if (d != "success") {
+                        layer.alert(d);
+                        return;
+                    }
+                    layer.alert("加入购物车成功 : )");
+                });
+            }
+        },
+        mounted: function () {
+            this.showProvider();
+            this.showFoodList();
+        }
+    });
+</script>
+</body>
+</html>
